@@ -1,24 +1,18 @@
 # Threat Model
 
-## System considered
+## System
 
-A generic enterprise LLM application with:
-
-- a user-facing chat interface;
-- retrieval-augmented generation (RAG);
-- access to internal knowledge;
-- optional tools or APIs;
-- centralized identity and logging.
+A generic enterprise LLM application with a chat interface, RAG, internal knowledge access, optional tools/APIs, identity and logging.
 
 ## Assets
 
 - confidential enterprise data;
-- user identity and authorization context;
+- identities and authorization context;
 - system/developer instructions;
-- model and application configuration;
+- model/application configuration;
 - API credentials;
-- business records accessible through tools;
-- security logs and audit trails.
+- business records;
+- security logs.
 
 ## Trust boundaries
 
@@ -26,57 +20,27 @@ A generic enterprise LLM application with:
 2. Retrieved content -> model context
 3. Model output -> tool router
 4. Tool router -> enterprise APIs
-5. External model/provider -> enterprise environment
+5. Model/provider -> enterprise environment
 
-## Example threats
+## Threats and controls
 
 ### Direct prompt injection
-
-An attacker places instructions in the user prompt intended to override application policy.
-
-**Controls**
-
-- input classification;
-- separation of instructions from data;
-- least-privileged tool interfaces;
-- deterministic authorization outside the model.
+Controls: input classification, instruction/data separation, least-privileged tools, authorization outside the model.
 
 ### Indirect prompt injection
-
-Malicious instructions are embedded in content retrieved from a document, website or knowledge base.
-
-**Controls**
-
-- treat retrieved content as untrusted;
-- scan and label retrieved material;
-- constrain which retrieved content can influence tool invocation;
-- apply provenance and source controls.
+Controls: treat retrieved content as untrusted, provenance, scanning, and prevent retrieved text from directly controlling tools.
 
 ### Excessive agency
+Controls: allow-lists, narrow schemas, transaction limits, approval gates, deterministic authorization.
 
-The model is allowed to execute actions beyond what is necessary for the task.
+### Sensitive information disclosure
+Controls: authorization before retrieval, filtering, secret management, output checking and monitoring.
 
-**Controls**
+### Authorization bypass through tool use
+Controls: validate user context at the API boundary, re-check permissions, use scoped credentials and independent policy enforcement.
 
-- allow-listed tools;
-- narrow tool schemas;
-- transaction limits;
-- human approval for sensitive actions;
-- independent authorization checks.
-
-### Sensitive-information disclosure
-
-The model returns data that the user is not authorized to access.
-
-**Controls**
-
-- authorization before retrieval;
-- attribute-aware filtering;
-- output checks for sensitive data;
-- audit logging and alerting.
-
-## Security principle
+## Principle
 
 **The model should not be the final authority for security decisions.**
 
-Authorization, data access, transaction approval and other high-impact controls should be enforced by deterministic application components outside the model.
+The model can propose. Deterministic application components should authorize.

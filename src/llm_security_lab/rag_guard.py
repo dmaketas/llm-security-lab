@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-
 from .prompt_injection import assess_prompt
-
 
 @dataclass(frozen=True)
 class RetrievedContentRisk:
@@ -9,15 +7,13 @@ class RetrievedContentRisk:
     score: int
     level: str
     indicators: tuple[str, ...]
+    should_quarantine: bool
 
-
-def assess_retrieved_content(content: str, source: str = "unknown") -> RetrievedContentRisk:
-    """Assess retrieved text before it is inserted into an LLM context."""
+def assess_retrieved_content(content: str, source: str = "unknown", quarantine_threshold: int = 60) -> RetrievedContentRisk:
+    if not 0 <= quarantine_threshold <= 100:
+        raise ValueError("quarantine_threshold must be between 0 and 100")
     result = assess_prompt(content)
-
     return RetrievedContentRisk(
-        source=source,
-        score=result.score,
-        level=result.level,
-        indicators=result.indicators,
+        source, result.score, result.level, result.indicators,
+        result.score >= quarantine_threshold
     )
